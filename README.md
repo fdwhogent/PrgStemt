@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PrgStemt
 
-## Getting Started
+Realtime poll-applicatie voor HOGENT. Docenten maken polls aan, studenten stemmen live mee, resultaten worden elke 3 seconden bijgewerkt.
 
-First, run the development server:
+## Tech Stack
+
+- **Next.js 15** (App Router) + TypeScript
+- **Tailwind CSS v4** (HOGENT-huisstijl)
+- **Upstash Redis** (data-opslag)
+- **Vercel** (hosting)
+
+## Functionaliteit
+
+- `/admin` - Poll aanmaken met 2-4 antwoordopties
+- `/` - Stemmen + live resultaten als balkgrafiek
+- Dubbelstem-preventie via localStorage
+- Auto-refresh resultaten (3s polling)
+
+## Lokaal opstarten
+
+### 1. Clone en installeer
+
+```bash
+git clone https://github.com/<username>/PrgStemt.git
+cd PrgStemt
+npm install
+```
+
+### 2. Redis instellen
+
+Maak een gratis Redis-database aan op [console.upstash.com](https://console.upstash.com/).
+
+Kopieer `.env.example` naar `.env.local` en vul je credentials in:
+
+```bash
+cp .env.example .env.local
+```
+
+### 3. Starten
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in je browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy op Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Push naar GitHub
+2. Importeer het project op [vercel.com](https://vercel.com)
+3. Voeg environment variables toe (`UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN`)
+4. Deploy
 
-## Learn More
+## Projectstructuur
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+  page.tsx          - Stempagina
+  admin/page.tsx    - Admin pagina
+  api/
+    poll/route.ts   - GET/POST poll
+    vote/route.ts   - POST stem
+    results/route.ts - GET resultaten
+components/
+  Header.tsx        - Navigatie
+  VoteCard.tsx      - Stem-knop
+  ResultsChart.tsx  - Balkgrafiek
+  PollForm.tsx      - Poll-formulier
+lib/
+  redis.ts          - Redis client
+  types.ts          - TypeScript types
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Redis Data Model
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Key | Type | Beschrijving |
+|-----|------|--------------|
+| `current_poll` | String (JSON) | Actieve poll met vraag en opties |
+| `votes:{pollId}` | Hash | Stemtelling per optie-index |
