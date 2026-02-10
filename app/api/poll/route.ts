@@ -19,9 +19,10 @@ export async function GET() {
       success: true,
       data: poll,
     } satisfies ApiResponse<Poll>);
-  } catch {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Onbekende fout";
     return NextResponse.json(
-      { success: false, error: "Kon poll niet ophalen" } satisfies ApiResponse<never>,
+      { success: false, error: `Kon poll niet ophalen: ${message}` } satisfies ApiResponse<never>,
       { status: 500 }
     );
   }
@@ -72,9 +73,10 @@ export async function POST(request: Request) {
       { success: true, data: poll } satisfies ApiResponse<Poll>,
       { status: 201 }
     );
-  } catch {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Onbekende fout";
     return NextResponse.json(
-      { success: false, error: "Kon poll niet aanmaken" } satisfies ApiResponse<never>,
+      { success: false, error: `Kon poll niet aanmaken: ${message}` } satisfies ApiResponse<never>,
       { status: 500 }
     );
   }
